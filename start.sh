@@ -1,27 +1,15 @@
 #!/bin/bash
 
-# Set non-interactive timezone
-export DEBIAN_FRONTEND=noninteractive
-ln -fs /usr/share/zoneinfo/Asia/Kathmandu /etc/localtime
-dpkg-reconfigure -f noninteractive tzdata
+# Start DBus
+mkdir -p /var/run/dbus
+dbus-daemon --system --fork
 
-# Install tmate and expect
-apt-get update
-apt-get install -y tmate expect
+# Start SSH
+service ssh start
 
-# Start tmate session
-tmate -S /tmp/tmate.sock new-session -d
-tmate -S /tmp/tmate.sock wait tmate-ready
+# Prepare X11 directory
+mkdir -p /tmp/.X11-unix
+chmod 1777 /tmp/.X11-unix
 
-# Print access links
-echo "SSH access:"
-tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
-
-echo "Web access:"
-tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
-
-# Keep session alive forever
-while true; do
-    tmate -S /tmp/tmate.sock send-keys "echo alive && date" C-m
-    sleep 60
-done
+# Start XRDP
+/usr/sbin/xrdp --nodaemon
